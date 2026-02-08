@@ -1,0 +1,2 @@
+Usage: Replace <inputFile> <outputFile> <searchString> <replacementString>
+Replaces all occurrences of <searchString> with <replacementString> in <inputFile>.

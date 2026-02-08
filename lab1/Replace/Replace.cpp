@@ -37,7 +37,7 @@ void CopyStreamWithReplacement(std::istream& input, std::ostream& output,
 
 	while (std::getline(input, line))
 	{
-		output << ReplaceString(line, searchString, replacementString) << "\n";
+		output << ReplaceString(line, searchString, replacementString) << "\n"; // TODO по сути есть проблема с тем, что \n может быть лишним в конце файла
 	}
 }
 
@@ -52,7 +52,7 @@ void CopyFileWithReplacement(const std::string& inputFilename, const std::string
 	}
 	std::ofstream outputFile;
 	outputFile.open(outputFilename);
-	if (!inputFile.is_open())
+	if (!outputFile.is_open())
 	{
 		throw std::runtime_error("Can't open file " + outputFilename);
 	}
@@ -62,6 +62,13 @@ void CopyFileWithReplacement(const std::string& inputFilename, const std::string
 
 int main(int argc, char* argv[])
 {
+	if (argc == 2 && std::string(argv[1]) == "-h")
+	{
+		std::cout << "Usage: Replace <inputFile> <outputFile> <searchString> <replacementString>\n";
+		std::cout << "Replaces all occurrences of <searchString> with <replacementString> in <inputFile>.\n";
+		return 0;
+	}
+
 	if (argc != 5)
 	{
 		std::cout << "Invalid argument count\n"
