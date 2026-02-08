@@ -41,12 +41,34 @@ void CopyStreamWithReplacement(std::istream& input, std::ostream& output,
 	}
 }
 
+void CopyFileWithReplacement(const std::string& inputFilename, const std::string& outputFilename,
+	const std::string& search, const std::string& replace)
+{
+	std::ifstream inputFile;
+	inputFile.open(inputFilename);
+	if (!inputFile.is_open())
+	{
+		throw std::runtime_error("Can't open file " + inputFilename);
+	}
+	std::ofstream outputFile;
+	outputFile.open(outputFilename);
+	if (!inputFile.is_open())
+	{
+		throw std::runtime_error("Can't open file " + outputFilename);
+	}
+	CopyStreamWithReplacement(inputFile, outputFile, search, replace);
+	outputFile.flush();
+}
+
 int main(int argc, char* argv[])
 {
 	if (argc != 5)
 	{
 		std::cout << "Invalid argument count\n"
 				  << "Usage: replace.exe <inputFile> <outputFile> <searchString> <replacementString>\n";
+
+		std::cout << "Passed arguments:\n"
+				  << argc << std::endl;
 		return 1;
 	}
 
@@ -54,17 +76,7 @@ int main(int argc, char* argv[])
 	// принимающую имена файлов, а также строки для поиска и замены
 	// Добавьте обработку ошибок
 
-	std::ifstream inputFile;
-	inputFile.open(argv[1]);
-
-	std::ofstream outputFile;
-	outputFile.open(argv[2]);
-
-	std::string search = argv[3];
-	std::string replace = argv[4];
-
-	CopyStreamWithReplacement(inputFile, outputFile, search, replace);
-	outputFile.flush();
+	CopyFileWithReplacement(argv[1], argv[2], argv[3], argv[4]);
 
 	return 0;
 }
