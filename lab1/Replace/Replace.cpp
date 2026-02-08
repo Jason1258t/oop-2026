@@ -8,7 +8,10 @@
 std::string ReplaceString(const std::string& subject,
 	const std::string& searchString, const std::string& replacementString)
 {
-
+	if (searchString.empty())
+	{
+		return subject;
+	}
 	size_t pos = 0;
 
 	std::string result;
@@ -31,15 +34,27 @@ std::string ReplaceString(const std::string& subject,
 }
 
 void CopyStreamWithReplacement(std::istream& input, std::ostream& output,
-	const std::string& searchString, const std::string& replacementString)
+    const std::string& searchString, const std::string& replacementString)
 {
-	std::string line;
+    std::string buffer;
+    char c;
 
-	while (std::getline(input, line))
-	{
-		output << ReplaceString(line, searchString, replacementString) << "\n"; // TODO по сути есть проблема с тем, что \n может быть лишним в конце файла
-	}
+    while (input.get(c))
+    {
+        buffer += c;
+
+        if (buffer.size() >= searchString.size() &&
+            buffer.substr(buffer.size() - searchString.size()) == searchString)
+        {
+            buffer.erase(buffer.size() - searchString.size());
+            output << buffer << replacementString;
+            buffer.clear();
+        }
+    }
+
+    output << buffer;
 }
+
 
 void CopyFileWithReplacement(const std::string& inputFilename, const std::string& outputFilename,
 	const std::string& search, const std::string& replace)
