@@ -13,6 +13,13 @@ add_test(NAME ReplaceDogWithCat COMMAND replace "${TEST_INPUT_FILE}" "${TEST_OUT
 add_test(NAME CompareDogWithCat COMMAND ${CMAKE_COMMAND} -E compare_files "${TEST_OUTPUT_FILE}" "${TEST_EXPECTED_FILE}")
 set_tests_properties(CompareDogWithCat PROPERTIES DEPENDS ReplaceDogWithCat)
 
+set(TEST_INPUT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/tests/fox.txt")
+set(TEST_EXPECTED_FILE "${CMAKE_CURRENT_SOURCE_DIR}/tests/fox.txt")
+set(TEST_OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/output.txt")
+add_test(NAME ReplaceEmptySearch COMMAND replace "${TEST_INPUT_FILE}" "${TEST_OUTPUT_FILE}" "" "cat")
+add_test(NAME CompareEmptySearch COMMAND ${CMAKE_COMMAND} -E compare_files "${TEST_OUTPUT_FILE}" "${TEST_EXPECTED_FILE}")
+set_tests_properties(CompareEmptySearch PROPERTIES DEPENDS ReplaceEmptySearch)
+
 set(TEST_EX1_INPUT "${CMAKE_CURRENT_SOURCE_DIR}/tests/ex1_input.txt")
 set(TEST_EX1_EXPECTED "${CMAKE_CURRENT_SOURCE_DIR}/tests/ex1_expected.txt")
 set(TEST_EX1_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/ex1_output.txt")

@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <string>
 
-// TODO: Add error handling (e.g., file open errors, argument parsing errors, etc.)
-
 std::string ReplaceString(const std::string& subject,
 	const std::string& searchString, const std::string& replacementString)
 {
@@ -60,27 +58,46 @@ void CopyStreamWithReplacement(std::istream& input, std::ostream& output,
 	output << buffer;
 }
 
-void CopyFileWithReplacement(const std::string& inputFilename, const std::string& outputFilename,
+bool CopyFileWithReplacement(const std::string& inputFilename, const std::string& outputFilename,
 	const std::string& search, const std::string& replace)
 {
 	std::ifstream inputFile;
 	inputFile.open(inputFilename);
 	if (!inputFile.is_open())
 	{
-		throw std::runtime_error("Can't open file " + inputFilename);
+		return false;
 	}
 	std::ofstream outputFile;
 	outputFile.open(outputFilename);
 	if (!outputFile.is_open())
 	{
-		throw std::runtime_error("Can't open file " + outputFilename);
+		return false;
 	}
 	CopyStreamWithReplacement(inputFile, outputFile, search, replace);
 	outputFile.flush();
+	return true;
 }
 
+bool ReadInput(std::string& searchString, std::string& replacementString, std::string& subject)
+{
+	if (!std::getline(std::cin, searchString) || !std::getline(std::cin, replacementString))
+	{
+		return false;
+	}
 
-// TODO: refactor main to separate argument parsing, file handling, and string replacement logic more cleanly (e.g., using helper functions, etc.)
+	std::string line;
+	while (std::getline(std::cin, line))
+	{
+		if (!subject.empty())
+		{
+			subject += '\n';
+		}
+		subject += line;
+	}
+
+	return !subject.empty();
+}
+
 int main(int argc, char* argv[])
 {
 	if (argc == 2 && std::string(argv[1]) == "-h")
@@ -89,45 +106,31 @@ int main(int argc, char* argv[])
 		std::cout << "Replaces all occurrences of <searchString> with <replacementString> in <inputFile>." << std::endl;
 		return 0;
 	}
-	std::string searchString, replacementString;
+
 	if (argc == 5)
 	{
-		std::string searchString, replacementString, inputFile, outputFile;
-
-		inputFile = argv[1];
-		outputFile = argv[2];
-		searchString = argv[3];
-		replacementString = argv[4];
-
-		CopyFileWithReplacement(inputFile, outputFile, searchString, replacementString);
-	}
-	else if (argc != 5)
-	{
-
-		std::cout << "Invalid argument count" << std::endl
-				  << "Usage: replace <inputFile> <outputFile> <searchString> <replacementString>" << std::endl;
-
-		std::string searchString, replacementString, subject;
-		std::cout << "Enter: searchString replacementString subject " << std::endl;
-
-		std::getline(std::cin, searchString);
-		std::getline(std::cin, replacementString);
-
-		std::string line;
-		while (std::getline(std::cin, line))
+		if (!CopyFileWithReplacement(argv[1], argv[2], argv[3], argv[4]))
 		{
-			if (!subject.empty())
-			{
-				subject += '\n';
-			}
-			subject += line;
+			std::cerr << "ERROR" << std::endl;
+			return 1;
 		}
+	}
+	else if (argc == 1)
+	{
+		std::string searchString, replacementString, subject;
 
-		// TODO: verify that all args were passed correctly (e.g., searchString and replacementString should not be empty, etc.)
-		// Directly need to verify input interruption by EOF (e.g., Ctrl+D in Unix)
+		if (!ReadInput(searchString, replacementString, subject))
+		{
+			std::cerr << "ERROR" << std::endl;
+			return 1;
+		}
 
 		std::cout << "Result: " << std::endl
 				  << ReplaceString(subject, searchString, replacementString) << std::endl;
+	} else {
+		std::cout << "Invalid arguments. Use -h for help." << std::endl;
+		std::cout << "Usage: replace <inputFile> <outputFile> <searchString> <replacementString>" << std::endl;
+		return 1;
 	}
 
 	return 0;
