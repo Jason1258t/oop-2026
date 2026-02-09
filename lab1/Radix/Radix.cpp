@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <vector>
 #include <cstdint>
 
 const std::string HELP_TEXT = "Usage: radix <source notation> <destination notation> <value>\n"
