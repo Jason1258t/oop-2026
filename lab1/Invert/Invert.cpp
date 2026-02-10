@@ -6,35 +6,57 @@
 
 const std::string HELP_TEXT = "Usage: invert <input file>\n"
 							  "If u don't provide an input file, the program will read from standard input line by line.\n"
-							  "Proggram works with square matrices of 3x3 size. Matrix will be inverted and returned as output.\n"
-							  "Example: invert input.txt\n";
+							  "Proggram works with square matrices of 3x3 size. Matrix will be inverted and returned as output.\n";
 
 using Matrix = std::vector<std::vector<double>>;
+using VecD = std::vector<double>;
+
+class NonInvertibleMatrixException : public std::runtime_error
+{
+public:
+	explicit NonInvertibleMatrixException(const std::string& message = "Matrix is singular and cannot be inverted") : std::runtime_error(message) {}
+};
+
+class InvalidMatrixException : public std::runtime_error
+{
+public:
+	explicit InvalidMatrixException(const std::string& message = "Invalid matrix") : std::runtime_error(message) {}
+};
+
+class InvalidMatrixFormatException : public std::runtime_error
+{
+public:
+	explicit InvalidMatrixFormatException(const std::string& message = "Invalid matrix format") : std::runtime_error(message) {}
+};
 
 Matrix ReadMatrix(std::istream& input)
 {
 	Matrix matrix;
 	std::string line;
-	int rowCount = 0;
-	while (std::getline(input, line) && rowCount < 3)
+
+	while (std::getline(input, line) && matrix.size() < 3)
 	{
-		int colCount = 0;
-		std::vector<double> row;
 		std::istringstream iss(line);
-		std::string cell;
-		while (std::getline(iss, cell, '\t') && colCount < 3)
+
+		VecD row;
+		double value;
+		while (row.size() < 3 && (iss >> value))
 		{
-			row.push_back(std::stod(cell));
-			colCount++;
+			row.push_back(value);
+		}
+		if (iss.fail() && !iss.eof())
+		{
+			throw InvalidMatrixException("Non-numeric value encountered in input");
 		}
 		matrix.push_back(row);
-		rowCount++;
 	}
+
 	return matrix;
 }
 
 Matrix PrintMatrix(const Matrix& matrix, std::ostream& output)
 {
+	output << std::fixed << std::setprecision(3);
 	for (const auto& row : matrix)
 	{
 		for (const auto& elem : row)
@@ -53,14 +75,14 @@ Matrix GetMinor(const Matrix& matrix, int row, int col)
 	{
 		if (i == row)
 			continue;
-		std::vector<double> minor_row;
+		VecD minorRow;
 		for (size_t j = 0; j < matrix[i].size(); ++j)
 		{
 			if (j == col)
 				continue;
-			minor_row.push_back(matrix[i][j]);
+			minorRow.push_back(matrix[i][j]);
 		}
-		minor.push_back(minor_row);
+		minor.push_back(minorRow);
 	}
 	return minor;
 }
@@ -86,12 +108,12 @@ double Determinant(const Matrix& matrix)
 
 Matrix AdjugateMatrix(const Matrix& matrix)
 {
-	Matrix adjMatrix(matrix.size(), std::vector<double>(matrix[0].size()));
+	Matrix adjMatrix(matrix.size(), VecD(matrix[0].size()));
 	for (size_t i = 0; i < matrix.size(); ++i)
 	{
 		for (size_t j = 0; j < matrix[i].size(); ++j)
 		{
-			adjMatrix[j][i] = ((i + j) % 2 == 0 ? 1 : -1) * Determinant(GetMinor(matrix, i, j));
+			adjMatrix[i][j] = ((i + j) % 2 == 0 ? 1 : -1) * Determinant(GetMinor(matrix, i, j));
 		}
 	}
 	return adjMatrix;
@@ -99,7 +121,7 @@ Matrix AdjugateMatrix(const Matrix& matrix)
 
 Matrix TransposeMatrix(const Matrix& matrix)
 {
-	Matrix transposed(matrix[0].size(), std::vector<double>(matrix.size()));
+	Matrix transposed(matrix[0].size(), VecD(matrix.size()));
 	for (size_t i = 0; i < matrix.size(); ++i)
 	{
 		for (size_t j = 0; j < matrix[i].size(); ++j)
@@ -115,13 +137,13 @@ Matrix InvertMatrix(const Matrix& matrix)
 	double det = Determinant(matrix);
 	if (det == 0)
 	{
-		throw std::runtime_error("Matrix is singular and cannot be inverted.");
+		throw NonInvertibleMatrixException();
 	}
 
 	Matrix adjugate = AdjugateMatrix(matrix);
 	Matrix transposed = TransposeMatrix(adjugate);
 
-	Matrix inverted(matrix.size(), std::vector<double>(matrix[0].size()));
+	Matrix inverted(matrix.size(), VecD(matrix[0].size()));
 
 	for (size_t i = 0; i < transposed.size(); ++i)
 	{
@@ -133,6 +155,21 @@ Matrix InvertMatrix(const Matrix& matrix)
 	return inverted;
 }
 
+void ValidateMatrix(const Matrix& matrix)
+{
+	if (matrix.size() != 3)
+	{
+		throw InvalidMatrixFormatException("Expected 3 rows, got " + std::to_string(matrix.size()));
+	}
+	for (size_t i = 0; i < matrix.size(); ++i)
+	{
+		if (matrix[i].size() != 3)
+		{
+			throw InvalidMatrixFormatException("Row " + std::to_string(i) + " expected 3 columns, got " + std::to_string(matrix[i].size()));
+		}
+	}
+}
+
 int main(int argc, char* argv[])
 {
 	if (argc == 2 && std::string(argv[1]) == "-h")
@@ -141,7 +178,7 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 
-	std::istream* input;
+	Matrix matrix;
 
 	if (argc == 2)
 	{
@@ -151,18 +188,51 @@ int main(int argc, char* argv[])
 			std::cerr << "Error: Could not open file " << argv[1] << std::endl;
 			return 1;
 		}
-		input = &inputFile;
+		try
+		{
+			matrix = ReadMatrix(inputFile);
+		}
+		catch (const InvalidMatrixException& e)
+		{
+			std::cerr << "Invalid matrix" << std::endl;
+			return 0;
+		}
+	}
+	else if (argc == 1)
+	{
+		try
+		{
+			matrix = ReadMatrix(std::cin);
+		}
+		catch (const InvalidMatrixException& e)
+		{
+			std::cerr << "Invalid matrix" << std::endl;
+			return 0;
+		}
 	}
 	else
 	{
-		input = &std::cin;
+		std::cerr << "Error: Invalid number of arguments. Use -h for help." << std::endl;
+		return 1;
 	}
-	Matrix matrix = ReadMatrix(*input);
-	PrintMatrix(matrix, std::cout);
+
 	try
 	{
+		ValidateMatrix(matrix);
 		Matrix inverted = InvertMatrix(matrix);
 		PrintMatrix(inverted, std::cout);
+	}
+	catch (const NonInvertibleMatrixException& e)
+	{
+		std::cerr << "Non-invertible" << std::endl;
+	}
+	catch (const InvalidMatrixFormatException& e)
+	{
+		std::cerr << "Invalid matrix format" << std::endl;
+	}
+	catch (const InvalidMatrixException& e)
+	{
+		std::cerr << "Invalid matrix" << std::endl;
 	}
 	catch (const std::exception& e)
 	{
