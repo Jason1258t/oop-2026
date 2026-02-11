@@ -1,3 +1,5 @@
 add_subdirectory(Replace)
 add_subdirectory(Radix)
 add_subdirectory(Invert)
+add_subdirectory(Crypt)
+add_subdirectory(Labyrinth)
