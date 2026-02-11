@@ -1,4 +1,4 @@
-add_executable(labyrinth Labyrinth.cpp)
+add_executable(labyrinth Labyrinth.cpp WaveAlgorithm.cpp)
 enable_testing()
 
 set(TEST_INPUT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/tests/labyrinth-1.txt")
