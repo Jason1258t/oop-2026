@@ -1,3 +1,4 @@
+#include "exceptions.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -10,24 +11,6 @@ const std::string HELP_TEXT = "Usage: invert <input file>\n"
 
 using Matrix = std::vector<std::vector<double>>;
 using VecD = std::vector<double>;
-
-class NonInvertibleMatrixException : public std::runtime_error
-{
-public:
-	explicit NonInvertibleMatrixException(const std::string& message = "Matrix is singular and cannot be inverted") : std::runtime_error(message) {}
-};
-
-class InvalidMatrixException : public std::runtime_error
-{
-public:
-	explicit InvalidMatrixException(const std::string& message = "Invalid matrix") : std::runtime_error(message) {}
-};
-
-class InvalidMatrixFormatException : public std::runtime_error
-{
-public:
-	explicit InvalidMatrixFormatException(const std::string& message = "Invalid matrix format") : std::runtime_error(message) {}
-};
 
 Matrix ReadMatrix(std::istream& input)
 {
@@ -87,16 +70,11 @@ Matrix GetMinor(const Matrix& matrix, int row, int col)
 	return minor;
 }
 
-double Determinant2(const Matrix& matrix)
-{
-	return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
-}
-
 double Determinant(const Matrix& matrix)
 {
 	if (matrix.size() == 2)
 	{
-		return Determinant2(matrix);
+		return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
 	}
 	double det = 0.0;
 	for (size_t j = 0; j < matrix[0].size(); ++j)
