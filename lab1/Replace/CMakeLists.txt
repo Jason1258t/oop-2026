@@ -34,5 +34,20 @@ add_test(NAME ReplaceEx2Run COMMAND replace "${TEST_EX2_INPUT}" "${TEST_EX2_OUTP
 add_test(NAME ReplaceEx2Compare COMMAND ${CMAKE_COMMAND} -E compare_files "${TEST_EX2_OUTPUT}" "${TEST_EX2_EXPECTED}")
 set_tests_properties(ReplaceEx2Compare PROPERTIES DEPENDS ReplaceEx2Run)
 
+
+set(TEST_EMPTY_INPUT "${CMAKE_CURRENT_SOURCE_DIR}/tests/empty.txt")
+set(TEST_EMPTY_EXPECTED "${CMAKE_CURRENT_SOURCE_DIR}/tests/empty.txt")
+set(TEST_EMPTY_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/empty_output.txt")
+add_test(NAME ReplaceEmptyRun COMMAND replace "${TEST_EMPTY_INPUT}" "${TEST_EMPTY_OUTPUT}" "1231234" "XYZ")
+add_test(NAME ReplaceEmptyCompare COMMAND ${CMAKE_COMMAND} -E compare_files "${TEST_EMPTY_OUTPUT}" "${TEST_EMPTY_EXPECTED}")
+set_tests_properties(ReplaceEx2Compare PROPERTIES DEPENDS ReplaceEx2Run)
+
+set(TEST_REPLACE_WITH_ENDL_INPUT "${CMAKE_CURRENT_SOURCE_DIR}/tests/replce_with_endl.txt") 
+set(TEST_REPLACE_WITH_ENDL_EXPECTED "${CMAKE_CURRENT_SOURCE_DIR}/tests/replace_with_endl_expectet.txt") 
+set(TEST_REPLACE_WITH_ENDL_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/replace_with_endl_output.txt") 
+add_test(NAME ReplaceWithEndlRun COMMAND replace "${TEST_REPLACE_WITH_ENDL_INPUT}" "${TEST_REPLACE_WITH_ENDL_OUTPUT}" "line\n" "") 
+add_test(NAME ReplaceWithEndlCompare COMMAND ${CMAKE_COMMAND} -E compare_files "${TEST_REPLACE_WITH_ENDL_OUTPUT}" "${TEST_REPLACE_WITH_ENDL_EXPECTED}") 
+set_tests_properties(ReplaceWithEndlCompare PROPERTIES DEPENDS ReplaceWithEndlRun)
+
 add_test(NAME ReplaceHelp COMMAND replace -h)
 set_tests_properties(ReplaceHelp PROPERTIES PASS_REGULAR_EXPRESSION "Usage: replace")

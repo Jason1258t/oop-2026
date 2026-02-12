@@ -58,24 +58,26 @@ void CopyStreamWithReplacement(std::istream& input, std::ostream& output,
 	output << buffer;
 }
 
-bool CopyFileWithReplacement(const std::string& inputFilename, const std::string& outputFilename,
+int CopyFileWithReplacement(const std::string& inputFilename, const std::string& outputFilename,
 	const std::string& search, const std::string& replace)
 {
 	std::ifstream inputFile;
 	inputFile.open(inputFilename);
 	if (!inputFile.is_open())
 	{
-		return false;
+		std::cerr << "Can't open input file" << std::endl;
+		return 1;
 	}
 	std::ofstream outputFile;
 	outputFile.open(outputFilename);
 	if (!outputFile.is_open())
 	{
-		return false;
+		std::cerr << "Can't open output file" << std::endl;
+		return 1;
 	}
 	CopyStreamWithReplacement(inputFile, outputFile, search, replace);
 	outputFile.flush();
-	return true;
+	return 0;
 }
 
 bool ReadInput(std::string& searchString, std::string& replacementString, std::string& subject)
@@ -98,38 +100,84 @@ bool ReadInput(std::string& searchString, std::string& replacementString, std::s
 	return !subject.empty();
 }
 
-int main(int argc, char* argv[])
+enum class ProgrammMode
+{
+	HELP,
+	FILE,
+	STDIN,
+	INVALID
+};
+
+struct ProgrammArgs
+{
+	ProgrammMode mode;
+	std::string inputFile;
+	std::string outputFile;
+	std::string searchString;
+	std::string replacementString;
+};
+
+ProgrammArgs ParseArguments(int argc, char* argv[])
 {
 	if (argc == 2 && std::string(argv[1]) == "-h")
 	{
-		std::cout << "Usage: replace <inputFile> <outputFile> <searchString> <replacementString>" << std::endl;
-		std::cout << "Replaces all occurrences of <searchString> with <replacementString> in <inputFile>." << std::endl;
-		return 0;
+		return { ProgrammMode::HELP };
 	}
-
-	if (argc == 5)
+	else if (argc == 5)
 	{
-		if (!CopyFileWithReplacement(argv[1], argv[2], argv[3], argv[4]))
-		{
-			std::cerr << "ERROR" << std::endl;
-			return 1;
-		}
+		return { ProgrammMode::FILE, argv[1], argv[2], argv[3], argv[4] };
 	}
 	else if (argc == 1)
 	{
-		std::string searchString, replacementString, subject;
+		return { ProgrammMode::STDIN };
+	}
+	else
+	{
+		return { ProgrammMode::INVALID };
+	}
+}
 
-		if (!ReadInput(searchString, replacementString, subject))
+int ProcessUserInput()
+{
+	std::string searchString, replacementString, subject;
+
+	if (!ReadInput(searchString, replacementString, subject))
+	{
+		std::cerr << "ERROR" << std::endl;
+		return 1;
+	}
+
+	std::cout << "Result: " << std::endl
+			  << ReplaceString(subject, searchString, replacementString) << std::endl;
+
+	return 0;
+}
+
+int main(int argc, char* argv[])
+{
+	ProgrammArgs args = ParseArguments(argc, argv);
+
+	switch (args.mode)
+	{
+	case ProgrammMode::HELP:
+		std::cout << "Usage: replace <inputFile> <outputFile> <searchString> <replacementString>" << std::endl
+				  << "Replaces all occurrences of <searchString> with <replacementString> in <inputFile>." << std::endl;
+		return 0;
+	case ProgrammMode::FILE: {
+		int result = CopyFileWithReplacement(args.inputFile, args.outputFile, args.searchString, args.replacementString);
+		if (result != 0)
 		{
 			std::cerr << "ERROR" << std::endl;
 			return 1;
 		}
-
-		std::cout << "Result: " << std::endl
-				  << ReplaceString(subject, searchString, replacementString) << std::endl;
-	} else {
-		std::cout << "Invalid arguments. Use -h for help." << std::endl;
-		std::cout << "Usage: replace <inputFile> <outputFile> <searchString> <replacementString>" << std::endl;
+		return 0;
+	}
+	case ProgrammMode::STDIN:
+		return ProcessUserInput();
+	case ProgrammMode::INVALID:
+	default:
+		std::cout << "Invalid arguments. Use -h for help." << std::endl
+				  << "Usage: replace <inputFile> <outputFile> <searchString> <replacementString>" << std::endl;
 		return 1;
 	}
 

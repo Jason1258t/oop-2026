@@ -87,7 +87,7 @@ std::vector<std::pair<int, int>> RestorePath(const RoadMap& dist, const Position
 		throw std::runtime_error("No path exists between A and B");
 	}
 
-	std::vector<std::pair<int, int>> restoreDirections = std::vector<std::pair<int, int>>(DIRECTIONS.rbegin(), DIRECTIONS.rend());
+	std::vector<std::pair<int, int>> restoreDirections(DIRECTIONS.rbegin(), DIRECTIONS.rend());
 
 	while (current != start)
 	{
