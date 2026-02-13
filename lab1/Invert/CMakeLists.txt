@@ -1,4 +1,4 @@
-add_executable(invert Invert.cpp)
+add_executable(invert main.cpp MatrixMath.cpp)
 enable_testing()
 
 set(TEST_INPUT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/tests/ex1.txt")
@@ -20,3 +20,5 @@ set_tests_properties(InvertEx4InvalidChar PROPERTIES PASS_REGULAR_EXPRESSION "^I
 set(TEST_INPUT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/tests/invalid_format.txt")
 add_test(NAME InvertEx5InvalidFormat COMMAND invert ${TEST_INPUT_FILE})
 set_tests_properties(InvertEx5InvalidFormat PROPERTIES PASS_REGULAR_EXPRESSION "^Invalid matrix format\n$")
+
+# TODO: check all use-cases and exceptions, add more tests
