@@ -35,11 +35,8 @@ uint8_t DecryptByte(uint8_t byte, uint8_t key)
 	return ApplyKey(ShakeByte(byte), key);
 }
 
-void ProcessFiles(const std::string& inputFile, const std::string& outputFile, const uint8_t& key, const std::string& mode)
+void ValidateFiles(std::string inputFile, std::string outputFile, std::ifstream& in, std::ofstream& out)
 {
-	std::ifstream in(inputFile, std::ios::binary);
-	std::ofstream out(outputFile, std::ios::binary);
-
 	if (!in.is_open())
 	{
 		throw std::system_error(errno, std::generic_category(), "Failed to open file " + inputFile);
@@ -49,18 +46,20 @@ void ProcessFiles(const std::string& inputFile, const std::string& outputFile, c
 	{
 		throw std::system_error(errno, std::generic_category(), "Failed to open file " + outputFile);
 	}
+}
+
+void ProcessFiles(const std::string& inputFile, const std::string& outputFile, const uint8_t& key, const std::string& mode)
+{
+	std::ifstream in(inputFile, std::ios::binary);
+	std::ofstream out(outputFile, std::ios::binary);
+	
+	ValidateFiles(inputFile, outputFile, in, out);
 
 	char byte;
 	while (in.get(byte))
 	{
-		if (mode == CRYPT_MODE)
-		{
-			out.put(CryptByte(static_cast<uint8_t>(byte), key));
-		}
-		else
-		{
-			out.put(DecryptByte(static_cast<uint8_t>(byte), key));
-		}
+		char res = mode == CRYPT_MODE ? CryptByte(byte, key) : DecryptByte(byte, key);
+		out.put(res);
 	}
 }
 
@@ -80,7 +79,7 @@ int main(int argc, char* argv[])
 	std::string mode = argv[1];
 	std::string inputFile = argv[2];
 	std::string outputFile = argv[3];
-	uint8_t key = static_cast<uint8_t>(std::stoi(argv[4]));
+	uint8_t key = std::stoi(argv[4]);
 
 	if (mode != CRYPT_MODE && mode != DECRYPT_MODE)
 	{
