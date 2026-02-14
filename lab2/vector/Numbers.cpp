@@ -27,8 +27,7 @@ std::vector<double> ProcessNumbers(const std::vector<double>& nums)
 
 	int countPositive = std::count_if(nums.begin(), nums.end(), [](double n) { return n > 0; });
 
-	if (countPositive == 0)
-		return nums;
+	if (countPositive == 0) return nums;
 
 	double avg = sumPositive / countPositive;
 
@@ -47,8 +46,7 @@ void PrintSortedNumbers(const std::vector<double>& nums, std::ostream& out)
 	out << std::fixed << std::setprecision(3);
 	for (size_t i = 0; i < sorted.size(); ++i)
 	{
-		if (i)
-			out << " ";
+		if (i) out << " ";
 		out << sorted[i];
 	}
 	out << std::endl;
