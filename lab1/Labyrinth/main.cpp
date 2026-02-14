@@ -81,7 +81,7 @@ ProgrammArgs ParseProgrammArgs(int argc, char* argv[])
 
 	if (argc == 3)
 	{
-		return { ProgrammMode::HELP, 0, argv[1], argv[2] };
+		return { ProgrammMode::FILE, 0, argv[1], argv[2] };
 	}
 	if (argc == 1)
 	{
